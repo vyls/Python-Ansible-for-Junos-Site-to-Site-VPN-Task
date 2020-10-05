@@ -1,0 +1,14 @@
+- name: Show IKE Session
+  hosts: srx
+  gather_facts: no
+
+  tasks:
+    - name: Show IKE Session
+      junos_command:
+        commands:
+          - show security ike security-associations PEER_ADDRESS
+      register: junos_result
+
+    - name: Print response
+      debug: msg="{{ junos_result.stdout_lines }}"
+#        var: junos_result

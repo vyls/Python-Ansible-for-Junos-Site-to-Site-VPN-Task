@@ -1,0 +1,13 @@
+- name: Show IPSEC Session
+  hosts: srx
+  gather_facts: no
+
+  tasks:
+    - name: Show IPSEC Session
+      junos_command:
+        commands:
+          - show security ipsec security-associations vpn-name VPN_NAME
+      register: junos_result
+
+    - name: Print response
+      debug: msg="{{ junos_result.stdout_lines }}"
