@@ -1,0 +1,43 @@
+- name: Set Security IKE
+  hosts: srx
+  gather_facts: no
+
+  tasks:
+    - name: Set Security IKE Proposal
+      junos_config:
+        lines:
+          - set security ike proposal IKE_PROPOSAL_NAME authentication-method pre-shared-keys
+          - set security ike proposal IKE_PROPOSAL_NAME dh-group group2
+          - set security ike proposal IKE_PROPOSAL_NAME authentication-algorithm sha1
+          - set security ike proposal IKE_PROPOSAL_NAME encryption-algorithm aes-128-cbc
+          - set security ike proposal IKE_PROPOSAL_NAME lifetime-seconds 28800
+        comment: Add Config Security IKE Proposal
+
+    - name: Set Security IKE Policy
+      junos_config:
+        lines:
+          - set security ike policy IKE_POLICY_NAME mode main
+          - set security ike policy IKE_POLICY_NAME proposals IKE_PROPOSAL_NAME
+          - set security ike policy IKE_POLICY_NAME pre-shared-key ascii-text PRESHARED_KEY 
+        comment: Add Config Security IKE Policy
+
+    - name: Set Security IKE Gateway
+      junos_config:
+        lines: 
+          - set security ike gateway IKE_GW_NAME ike-policy IKE_POLICY_NAME
+          - set security ike gateway IKE_GW_NAME address VPN_PEER_ADDRESS
+          - set security ike gateway IKE_GW_NAME dead-peer-detection interval 10
+          - set security ike gateway IKE_GW_NAME dead-peer-detection threshold 3
+          - set security ike gateway IKE_GW_NAME no-nat-traversal
+          - set security ike gateway IKE_GW_NAME external-interface VPN_EXTERNAL_INTERFACE
+
+    - name: Set Security IKE Gateway Dead Peer Detection
+      junos_config:
+        lines:
+          - set security ike gateway IKE_GW_NAME dead-peer-detection interval 10 threshold 3
+        comment: Add Config Security IKE Gateway
+        
+    - name: Confirm Commit!
+      junos_config:
+        confirm_commit: yes
+

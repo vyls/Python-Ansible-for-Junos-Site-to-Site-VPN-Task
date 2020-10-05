@@ -1,0 +1,53 @@
+- name: Set Security IPSEC
+  hosts: srx
+  gather_facts: no
+
+  tasks:
+    - name: Set Tunnel Interface
+      junos_config:
+        lines:
+          - set interfaces IPSEC_BIND_INTERFACE family inet address TUNNEL_ADDRESS
+          - set interfaces IPSEC_BIND_INTERFACE family inet mtu 1436
+          - set security zones security-zone VPN_ZONE_NAME interfaces IPSEC_BIND_INTERFACE
+
+    - name: Set Security IPSEC Proposal
+      junos_config:
+        lines:
+          - set security ipsec proposal IPSEC_PROPOSAL_NAME protocol esp
+          - set security ipsec proposal IPSEC_PROPOSAL_NAME authentication-algorithm hmac-sha1-96
+          - set security ipsec proposal IPSEC_PROPOSAL_NAME encryption-algorithm aes-128-cbc
+          - set security ipsec proposal IPSEC_PROPOSAL_NAME lifetime-seconds 3600
+        comment: Add Config Security IPSEC Proposal
+
+    - name: Set Security IPSEC Policy
+      junos_config:
+        lines:
+          - set security ipsec policy IPSEC_POLICY_NAME perfect-forward-secrecy keys group2
+          - set security ipsec policy IPSEC_POLICY_NAME proposals IPSEC_PROPOSAL_NAME
+        comment: Add Config Security IPSEC Policy
+
+    - name: Set Security IPSEC VPN
+      junos_config:
+        lines:
+          - set security ipsec vpn IPSEC_VPN_NAME bind-interface IPSEC_BIND_INTERFACE
+          - set security ipsec vpn IPSEC_VPN_NAME df-bit clear
+          - set security ipsec vpn IPSEC_VPN_NAME vpn-monitor source-interface IPSEC_BIND_INTERFACE
+          - set security ipsec vpn IPSEC_VPN_NAME vpn-monitor destination-ip IPSEC_MONITOR_ADDRESS
+          - set security ipsec vpn IPSEC_VPN_NAME ike gateway IPSEC_IKE_GW
+          - set security ipsec vpn IPSEC_VPN_NAME ike ipsec-policy IPSEC_POLICY_NAME
+        comment: Add Config Security IPSEC VPN
+
+    - name: Set Mapping IPSEC VPN to Tunnel Interface
+      junos_config:
+        lines:
+          - set security ipsec vpn IPSEC_VPN_NAME bind-interface IPSEC_BIND_INTERFACE
+        comment: Mapping IPSEC to Tunnel Interface
+
+    - name: Set Security Flow TCP-MSS
+      junos_config:
+        lines:
+          - set security flow tcp-mss ipsec-vpn mss 1379
+
+    - name: Confirm Commit!
+      junos_config:
+        confirm_commit: yes
